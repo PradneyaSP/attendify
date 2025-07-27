@@ -1,8 +1,8 @@
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { app } from '../firebaseConfig';
-import { db } from '../firebaseConfig';
+import { firebaseApp as app } from './firebase/clientApp';
+import { db } from './firebase/clientApp';
 import { collection, doc, setDoc } from 'firebase/firestore';
-import { setUserCookie } from './cookiesClient'; 
+import { setUserCookie } from './cookiesClient';
 
 const auth = getAuth(app);
 
@@ -14,7 +14,7 @@ export const registerUser = async (email: string, password: string) => {
       email,
       uid: userCredential.user.uid,
     };
-    const userId = `U-${userCredential.user.uid}`;
+    const userId = userCredential.user.uid;
 
     // Save user details to Firestore
     await setDoc(doc(collection(db, 'userDetails'), userId), userData);

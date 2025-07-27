@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { setUserCookie } from '@/lib/cookiesClient';
+import { signInWithGoogle } from '@/lib/firebase/auth';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -46,7 +47,6 @@ const Login: React.FC = () => {
         console.log("I AM IN!"); // Debugging log
   
         if (response.token) { // Check if token is defined
-          setUserCookie(response.token, 7); // Store the token in a cookie for 7 days
           router.push('/dashboard'); // Redirect to dashboard
         } else {
           setError('No token received.'); // Handle the case where token is undefined
@@ -98,7 +98,7 @@ const Login: React.FC = () => {
             </button>
           </form>
           <button
-            onClick={handleGoogleLogin}
+            onClick={signInWithGoogle}
             className="w-full mt-4 px-4 py-2 text-sm font-medium text-background bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"
           >
             Login with Google

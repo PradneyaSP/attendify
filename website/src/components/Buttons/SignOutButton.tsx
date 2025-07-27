@@ -2,13 +2,13 @@
 
 import { PowerIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { removeCookie } from "@/lib/cookiesServer";
+import { removeUserCookie } from "@/lib/cookiesClient";
 
 export default function SignOutButton() {
   const router = useRouter();
 
   const handleLogout = () => {
-    removeCookie("authToken");
+    removeUserCookie();
     console.log("Signed out");
     router.push("/");
   };

@@ -5,8 +5,7 @@ import { FC, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from "./ui/dropdown-menu";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
+import { signOut, onAuthStateChanged } from '@/lib/firebase/auth';
 
 interface variantOptions {
   variant: "link" | "default" | "destructive" | "outline" | "secondary" | "ghost" | null | undefined;
@@ -26,35 +25,67 @@ const navbarOptions = [
   { label: "Logout", href: "/", variant: "default", authRequired: true, isLogout: true },
 ] as navbarOptionType[];
 
+interface User {
+	email: string | null;
+	uid: string;
+	displayName: string | null;
+	photoURL: string | null;
+}
+
+
 const Navbar: FC = () => {
-  const [authToken, setAuthToken] = useState<string | null>(null);
-  // const pathname = usePathname();
+  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
   const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setAuthToken(user.uid);
-      } else {
-        setAuthToken(null);
-      }
-    });
+  
+function useUserSession(initialUser : User | null) {
+	// The initialUser comes from the server via a server component
+	const [user, setUser] = useState(initialUser);
+	const router = useRouter();
 
-    // Cleanup on component unmount
-    return () => unsubscribe();
+	useEffect(() => {
+			const unsubscribe = onAuthStateChanged((authUser) => {
+					setUser(authUser)
+			})
+
+			return () => unsubscribe()
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	useEffect(() => {
+			onAuthStateChanged((authUser) => {
+					if (user === undefined) return
+
+					// refresh when user changed to ease testing
+					if (user?.email !== authUser?.email) {
+							router.refresh()
+					}
+			})
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user])
+
+	return user;
+}
+
+  useEffect(() => {
+    setIsSignedIn(useUserSession(null) !== null);
   }, []);
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    setAuthToken(null);  // Clear authToken immediately
-    router.push("/");
-  };
-
   const filteredOptions = navbarOptions.filter((option) => {
-    if (option.authRequired && !authToken) return false;
-    if (!option.authRequired && authToken) return false;
+    if (option.authRequired && !isSignedIn) return false;
+    if (!option.authRequired && isSignedIn) return false;
     return true;
   });
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsSignedIn(false);
+      router.push('/');
+    } catch (error) {
+      console.error("Error logging out: ", error);
+    }
+  };
 
   return (
     <>
@@ -75,7 +106,7 @@ const Navbar: FC = () => {
           )}
         </div>
 
-        <MobileMenu authToken={authToken} handleLogout={handleLogout} options={filteredOptions} />
+        <MobileMenu isSignedIn={isSignedIn} handleLogout={handleLogout} options={filteredOptions} />
       </nav>
 
       <SVGWave />
@@ -91,7 +122,7 @@ const NavLink: FC<{ href: string; text: string; variant: "link" | "default" | "d
   </Link>
 );
 
-const MobileMenu: FC<{ authToken: string | null; handleLogout: () => void; options: navbarOptionType[] }> = ({ handleLogout, options }) => (
+const MobileMenu: FC<{ isSignedIn: boolean; handleLogout: () => void; options: navbarOptionType[] }> = ({ handleLogout, options }) => (
   <DropdownMenu>
     <DropdownMenuTrigger className="flex flex-col md:hidden gap-1 focus:outline-none">
       <MenuIcon />

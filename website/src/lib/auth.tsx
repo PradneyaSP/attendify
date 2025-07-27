@@ -1,5 +1,5 @@
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { db } from '../firebaseConfig';
+import { db } from './firebase/clientApp';
 import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
 import { setUserCookie } from './cookiesClient';
 
@@ -17,14 +17,14 @@ export const googleSignIn = async () => {
     const email = result.user.email;
 
     // Check if user already exists in Firestore
-    const userRef = doc(collection(db, 'userDetails'), `U-${uid}`);
+    const userRef = doc(collection(db, 'userDetails'), uid);
     const userSnap = await getDoc(userRef);
 
     // If user does not exist, create a new user document
     if (!userSnap.exists()) {
       const userData = {
         email,
-        uid: `U-${uid}`,
+        uid,
       };
 
       // Save user details to Firestore

@@ -1,11 +1,11 @@
 "use client"
 import React from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/firebaseConfig";
+import { auth } from "@/lib/firebase/clientApp";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { nanoid } from "nanoid";
-import { addTimetable } from "@/lib/db";
+import { addTimetable } from "@/lib/firebase/firestore";
 import { FormStep, FormStep0 } from "./form-steps";
 
 export function MultiStepForm({ steps }: { steps: number }) {

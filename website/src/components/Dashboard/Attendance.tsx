@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Box, Tabs, Tab, Typography, Grid, Paper, Button, CircularProgress } from '@mui/material';
 import { format, getDay } from 'date-fns';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db, auth } from '../../firebaseConfig';
+import { db, auth } from '../../lib/firebase/clientApp';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 type TimetableEntry = {
@@ -30,7 +30,7 @@ const Attendance = () => {
         try {
           const querySnapshot = await getDocs(q);
           const timetableData: TimetableEntry[] = [];
-          
+
           querySnapshot.forEach((doc) => {
             const docData = doc.data();
             if (docData.timetableEntries) {

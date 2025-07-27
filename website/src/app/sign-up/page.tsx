@@ -4,6 +4,9 @@ import { registerUser } from '@/lib/signupServics';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import { googleSignIn } from '@/lib/auth';
+import { setUserCookie } from '@/lib/cookiesClient';
+import { signInWithGoogle } from '@/lib/firebase/auth';
 
 const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -30,6 +33,26 @@ const SignUp: React.FC = () => {
       } else {
         setError(result.message || 'Registration failed.');
       }
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      const response = await googleSignIn();
+      if (response.success) {
+        console.log("I AM IN!"); // Debugging log
+
+        if (response.token) { // Check if token is defined
+          router.push('/dashboard'); // Redirect to dashboard
+        } else {
+          setError('No token received.'); // Handle the case where token is undefined
+        }
+      } else {
+        setError(response.message || 'Login failed. Please try again.'); // Ensure message is a string
+      }
+    } catch (error) {
+      console.log(error);
+      setError('An error occurred with Google login.');
     }
   };
 
@@ -79,6 +102,12 @@ const SignUp: React.FC = () => {
               className="w-full px-4 py-2 text-sm font-medium text-background bg-foreground rounded-lg hover:bg-ring focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50"
             >
               Sign Up
+            </button>
+            <button
+              onClick={signInWithGoogle}
+              className="w-full mt-4 px-4 py-2 text-sm font-medium text-background bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50"
+            >
+              SignUp with Google
             </button>
           </form>
           <p className="text-sm text-center">
